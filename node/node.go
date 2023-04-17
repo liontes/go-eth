@@ -684,6 +684,19 @@ func (n *Node) WSEndpoint() string {
 	return "ws://" + n.ws.listenAddr() + n.ws.wsConfig.prefix
 }
 
+// AuthEndpoint returns the endpoint for authenticad connection and path to the jwt secret.
+func (n *Node) AuthEndpoint(ws bool) (string, string) {
+	jwtFileName := n.config.JWTSecret
+	if jwtFileName == "" {
+		jwtFileName = n.ResolvePath(datadirJWTKey)
+	}
+	if ws {
+		wsServer := n.wsServerForPort(n.config.AuthPort, true)
+		return "ws://" + wsServer.listenAddr() + wsServer.wsConfig.prefix, jwtFileName
+	}
+	return "http://" + n.httpAuth.listenAddr(), jwtFileName
+}
+
 // EventMux retrieves the event multiplexer used by all the network services in
 // the current protocol stack.
 func (n *Node) EventMux() *event.TypeMux {
